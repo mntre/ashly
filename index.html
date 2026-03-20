@@ -9,14 +9,17 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Zen+Old+Mincho:wght@700&display=swap');
         
-        body { font-family: 'Space Grotesk', sans-serif; background-color: #0c0c1d; }
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #0c0c1d; margin: 0; padding: 0; }
 
         .glass-card {
             background: rgba(15, 15, 35, 0.75);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(0, 212, 255, 0.2);
-            margin-left: auto; margin-right: auto;
+            margin: 0 auto;
+            overflow: hidden;
+            width: 100%;
+            max-width: 448px; /* Tailwind max-w-md */
         }
 
         .video-bg {
@@ -40,6 +43,9 @@
             border: 1px solid rgba(0, 212, 255, 0.2) !important;
             color: white; text-align: center;
         }
+        
+        /* Ensures the PDF capture doesn't see scrollbars */
+        #export-area { overflow: visible !important; }
     </style>
 </head>
 <body class="min-h-screen text-white overflow-x-hidden">
@@ -54,7 +60,7 @@
     <div class="fixed inset-0 bg-gradient-to-b from-indigo-950/60 via-slate-900/80 to-orange-900/30 -z-[90]"></div>
 
     <div class="relative z-10 min-h-screen flex items-center justify-center py-12 px-6">
-        <div class="max-w-md w-full">
+        <div class="w-full max-w-md">
             
             <div class="text-center mb-8">
                 <div class="relative inline-block">
@@ -74,8 +80,8 @@
 
                 <div class="space-y-4" id="ui-buttons">
                     <button onclick="addRow()" class="w-full py-3 bg-white/90 text-indigo-950 font-black uppercase tracking-tighter italic rounded-xl hover:scale-[1.02] active:scale-95 transition-all">+ Add Course</button>
-                    <button onclick="downloadPDF()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-bold uppercase text-xs tracking-widest rounded-xl shadow-lg">DOWNLOAD</button>
-                    <button onclick="clearAll()" class="w-full py-2 text-slate-500 hover:text-orange-400 text-[10px] font-bold uppercase tracking-[0.2em]">Reset</button>
+                    <button onclick="downloadPDF()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-bold uppercase text-xs tracking-widest rounded-xl shadow-lg">Archive GWA</button>
+                    <button onclick="clearAll()" class="w-full py-2 text-slate-500 hover:text-orange-400 text-[10px] font-bold uppercase tracking-[0.2em]">Reset Musubi</button>
                 </div>
 
                 <div class="mt-8 pt-6 border-t border-white/10 text-center">
@@ -84,7 +90,7 @@
                 </div>
             </div>
 
-            <div class="mt-8 text-center">
+            <div class="mt-8 text-center" id="footer-text">
                 <p class="text-slate-500 text-[9px] uppercase tracking-[0.6em]">Syncing with Katawaredoki...</p>
             </div>
         </div>
@@ -100,7 +106,7 @@
             row.innerHTML = `
                 <input type="number" step="0.01" class="grade-input w-full p-3 rounded-xl font-bold" placeholder="1.00" oninput="calculateGWA()">
                 <input type="number" step="0.5" class="unit-input w-full p-3 rounded-xl font-bold" placeholder="3.0" oninput="calculateGWA()">
-                <button onclick="removeRow(this)" class="text-pink-500 text-xl delete-btn btn-to-hide">✕</button>
+                <button onclick="removeRow(this)" class="text-pink-500 text-xl delete-btn">✕</button>
             `;
             container.appendChild(row);
         }
@@ -119,32 +125,58 @@
 
         function clearAll() { container.innerHTML = ''; display.innerText = "0.00"; addRow(); }
 
-        function downloadPDF() {
+        async function downloadPDF() {
             const element = document.getElementById('export-area');
-            const mainBtns = document.getElementById('ui-buttons');
+            const ui = document.getElementById('ui-buttons');
             const deleteBtns = document.querySelectorAll('.delete-btn');
-            
-            mainBtns.style.display = 'none';
+            const rowCount = document.querySelectorAll('.grade-row').length;
+
+            // 1. Setup PDF State
+            ui.style.display = 'none';
             deleteBtns.forEach(b => b.style.visibility = 'hidden');
+            
+            // Dynamic styling for the export
+            const originalStyle = element.getAttribute('style');
             element.style.backgroundImage = "url('mitsuha.jpg')";
             element.style.backgroundSize = "cover";
             element.style.backgroundPosition = "center";
             element.style.borderRadius = "0px";
+            element.style.width = "100%";
+            element.style.maxWidth = "none"; // Let it expand for the PDF
+            
+            // Auto-Landscape if more than 12 rows
+            const isLandscape = rowCount > 12;
 
             const opt = {
-                margin: 0.5,
-                filename: 'Itomori_Registry_GWA.pdf',
+                margin: 0.3,
+                filename: 'Itomori_Academic_Registry.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 3, useCORS: true },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                html2canvas: { 
+                    scale: 2, 
+                    useCORS: true, 
+                    letterRendering: true,
+                    width: element.clientWidth,
+                    height: element.scrollHeight
+                },
+                jsPDF: { 
+                    unit: 'in', 
+                    format: 'a4', 
+                    orientation: isLandscape ? 'landscape' : 'portrait' 
+                }
             };
 
-            html2pdf().set(opt).from(element).save().then(() => {
-                mainBtns.style.display = 'block';
+            try {
+                await html2pdf().set(opt).from(element).save();
+            } catch (err) {
+                console.error("PDF Export failed", err);
+            } finally {
+                // 3. Restore UI
+                ui.style.display = 'block';
                 deleteBtns.forEach(b => b.style.visibility = 'visible');
                 element.style.backgroundImage = "none";
                 element.style.borderRadius = "2.5rem";
-            });
+                element.style.maxWidth = "448px";
+            }
         }
 
         window.onload = () => { addRow(); };
