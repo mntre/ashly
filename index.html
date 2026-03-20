@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Itomori Registry | GWA</title>
+    <title>Itomori Registry | snapshot</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700&family=Zen+Old+Mincho:wght@700&display=swap');
         
@@ -19,9 +19,10 @@
             margin: 0 auto;
             overflow: hidden;
             width: 100%;
-            max-width: 448px;
+            max-width: 448px; /* Tailwind max-w-md */
         }
 
+        /* Video logic matching your working files */
         .video-bg {
             position: fixed; top: 50%; left: 50%;
             min-width: 100%; min-height: 100%;
@@ -67,30 +68,33 @@
                 <p class="text-cyan-400 font-mono tracking-[0.4em] uppercase text-[10px] mt-4">Itomori Academic Registry</p>
             </div>
 
-            <div id="export-area" class="glass-card p-8 rounded-[2.5rem] shadow-2xl relative flex flex-col">
-                <div id="pdf-header" class="hidden text-center mb-6">
-                    <h2 class="text-3xl font-bold italic" style="color: #fff; font-family: 'Zen Old Mincho', serif;">OFFICIAL GWA REPORT</h2>
+            <div id="export-area" class="glass-card p-8 rounded-[2.5rem] shadow-2xl relative transition-all duration-300">
+                
+                <div id="snapshot-header" class="hidden text-center mb-6">
+                    <h2 class="text-3xl font-bold italic" style="color: #fff; font-family: 'Zen Old Mincho', serif; text-shadow: 0 0 15px rgba(255,255,255,0.4);">SNAPSHOT GWA REPORT</h2>
                     <div class="h-px bg-cyan-500/50 w-full my-4"></div>
                 </div>
 
-                <div class="grid grid-cols-[1fr_1fr_40px] gap-4 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/80">
+                <div id="label-header" class="grid grid-cols-[1fr_1fr_40px] gap-4 mb-4 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-400/80">
                     <span>Grade</span><span>Units</span><span></span>
                 </div>
 
                 <div id="grades-container" class="space-y-3 mb-6"></div>
 
-                <div id="pdf-spacer" class="hidden flex-grow"></div>
-
                 <div class="space-y-4" id="ui-buttons">
-                    <button onclick="addRow()" class="w-full py-3 bg-white/90 text-indigo-950 font-black uppercase tracking-tighter italic rounded-xl transition-all hover:bg-white">+ Add Course</button>
-                    <button onclick="downloadPDF()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-bold uppercase text-xs tracking-widest rounded-xl shadow-lg">Archive GWA</button>
+                    <button onclick="addRow()" class="w-full py-3 bg-white/90 text-indigo-950 font-black uppercase tracking-tighter italic rounded-xl hover:scale-[1.02] active:scale-95 transition-all">+ Add Subject</button>
+                    <button onclick="takeSnapshot()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-pink-500 text-white font-bold uppercase text-xs tracking-widest rounded-xl shadow-lg transform active:scale-95 transition-all">Musubi Snapshot (PNG)</button>
                     <button onclick="clearAll()" class="w-full py-2 text-slate-500 hover:text-orange-400 text-[10px] font-bold uppercase tracking-[0.2em]">Reset Musubi</button>
                 </div>
 
-                <div id="result-section" class="mt-8 pt-6 border-t border-white/10 text-center">
+                <div class="mt-8 pt-6 border-t border-white/10 text-center">
                     <p class="text-[10px] font-mono text-pink-400 uppercase tracking-widest mb-1">Final Result</p>
                     <div id="gwa-display" class="text-6xl font-black italic comet-glow" style="font-family: 'Zen Old Mincho', serif;">0.00</div>
                 </div>
+            </div>
+
+            <div class="mt-8 text-center" id="footer-text">
+                <p class="text-slate-500 text-[9px] uppercase tracking-[0.6em]">Syncing with Katawaredoki...</p>
             </div>
         </div>
     </div>
@@ -124,47 +128,64 @@
 
         function clearAll() { container.innerHTML = ''; display.innerText = "0.00"; addRow(); }
 
-        async function downloadPDF() {
+        async function takeSnapshot() {
             const element = document.getElementById('export-area');
-            const ui = document.getElementById('ui-buttons');
-            const pdfHeader = document.getElementById('pdf-header');
-            const spacer = document.getElementById('pdf-spacer');
+            const mainBtns = document.getElementById('ui-buttons');
+            const snapshotHeader = document.getElementById('snapshot-header');
             const deleteBtns = document.querySelectorAll('.delete-btn');
+            const inputs = document.querySelectorAll('input');
 
-            // 1. Force Full Page Height for PDF
-            ui.style.display = 'none';
-            pdfHeader.classList.remove('hidden');
-            spacer.classList.remove('hidden');
+            // 1. Snapshot Mode: Add background, hide UI
+            mainBtns.style.display = 'none';
+            snapshotHeader.classList.remove('hidden');
             deleteBtns.forEach(b => b.style.visibility = 'hidden');
             
-            // Set styles to fill the whole PDF page
+            // Temporary styles to create a "Document" centered on mitsuha.jpg
             element.style.backgroundImage = "url('mitsuha.jpg')";
             element.style.backgroundSize = "cover";
             element.style.backgroundPosition = "center";
             element.style.borderRadius = "0px";
-            element.style.minHeight = "1056px"; // Standard A4 height at 96 DPI
-            element.style.width = "100%";
-            element.style.maxWidth = "800px"; 
+            element.style.padding = "4rem"; // Add padding so Mitsuha photo shows
+            element.style.width = "800px"; // Fixed width for consistent image aspect ratio
+            element.style.margin = "0 auto"; // Centers the card within the snapshot width
 
-            const opt = {
-                margin: 0, // No margin so the image goes edge-to-edge
-                filename: 'Itomori_Registry_GWA.pdf',
-                image: { type: 'jpeg', quality: 1.0 },
-                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-            };
+            // Make inputs look like flat numbers in the image
+            inputs.forEach(i => {
+                i.style.background = "rgba(0,0,0,0.3)";
+                i.style.border = "none";
+            });
 
-            await html2pdf().set(opt).from(element).save();
+            // 2. Capture and Download as PNG
+            try {
+                const canvas = await html2canvas(element, {
+                    useCORS: true,
+                    scale: 3, // Super high quality
+                    backgroundColor: '#0c0c1d',
+                    scrollY: -window.scrollY // Fixes capturing white space
+                });
 
-            // 2. Restore Web Mode
-            ui.style.display = 'block';
-            pdfHeader.classList.add('hidden');
-            spacer.classList.add('hidden');
-            deleteBtns.forEach(b => b.style.visibility = 'visible');
-            element.style.backgroundImage = "none";
-            element.style.minHeight = ""; 
-            element.style.borderRadius = "2.5rem";
-            element.style.maxWidth = "448px";
+                const imgData = canvas.toDataURL("image/png");
+                const link = document.createElement('a');
+                link.href = imgData;
+                link.download = 'Itomori_Academic_Registry_Musubi.png';
+                link.click();
+            } catch (err) {
+                console.error("Snapshot failed", err);
+            } finally {
+                // 3. Restore Live Website Styles
+                mainBtns.style.display = 'block';
+                snapshotHeader.classList.add('hidden');
+                deleteBtns.forEach(b => b.style.visibility = 'visible');
+                element.style.backgroundImage = "none";
+                element.style.borderRadius = "2.5rem";
+                element.style.padding = "2rem"; // Restore default p-8
+                element.style.width = "100%";
+                element.style.maxWidth = "448px";
+                inputs.forEach(i => {
+                    i.style.background = "";
+                    i.style.border = "";
+                });
+            }
         }
 
         window.onload = () => { addRow(); };
