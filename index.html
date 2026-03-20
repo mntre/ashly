@@ -15,108 +15,106 @@
             background-color: #001f3f;
         }
 
-        /* FIXED BACKGROUND LOGIC */
         .video-bg {
             position: fixed; top: 50%; left: 50%;
-            min-width: 100%; min-height: 100%;
-            z-index: -100; transform: translate(-50%, -50%);
-            object-fit: cover;
-            filter: brightness(0.6) saturate(1.2);
-            display: none; /* Hidden by default */
+            width: 100vw; height: 100vh;
+            z-index: -1; transform: translate(-50%, -50%);
+            object-fit: cover; filter: brightness(0.5) saturate(1.2);
+            pointer-events: none;
         }
 
-        /* Media queries to show the correct one */
         @media (orientation: portrait) { 
             #bg-portrait { display: block !important; } 
+            #bg-landscape { display: none !important; }
         }
         @media (orientation: landscape) { 
             #bg-landscape { display: block !important; } 
+            #bg-portrait { display: none !important; }
         }
 
         .container {
             display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 20px;
-            background: rgba(0, 31, 63, 0.3);
+            min-height: 100vh; width: 100%; padding: 15px;
+            box-sizing: border-box;
         }
 
         .calc-card {
             background: rgba(0, 31, 63, 0.85);
             backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border: 2px solid #ff69b4;
-            padding: 2.5rem; border-radius: 25px;
-            width: 100%; max-width: 420px;
+            padding: 1.5rem; /* Reduced padding for mobile */
+            border-radius: 20px;
+            width: 100%; max-width: 380px;
             box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
             text-align: center;
+            position: relative;
         }
 
+        /* Responsive Title Size */
         h1 { 
-            font-family: 'Pirata One', system-ui; margin: 0;
-            color: #ff69b4; font-size: 3rem;
+            font-family: 'Pirata One', system-ui; margin: 0 0 20px 0;
+            color: #ff69b4; 
+            font-size: clamp(1.8rem, 8vw, 2.5rem); /* Scales with screen width */
             text-shadow: 0 0 15px rgba(255, 105, 180, 0.6);
-        }
-
-        /* FIXED: Added style for the rank display */
-        #rank-display {
-            font-family: 'Pirata One', cursive; color: #00ffff;
-            font-size: 1.4rem; margin-bottom: 20px; display: block;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+            white-space: nowrap; /* Keeps it on one line */
         }
 
         .label-grid {
-            display: grid; grid-template-columns: 1fr 1fr 45px;
-            gap: 12px; margin-bottom: 8px; color: #00ffff;
-            font-size: 0.8rem; text-transform: uppercase;
+            display: grid; grid-template-columns: 1.2fr 1fr 40px;
+            gap: 8px; margin-bottom: 8px; color: #00ffff;
+            font-size: 0.7rem; text-transform: uppercase;
         }
 
         .row {
-            display: grid; grid-template-columns: 1fr 1fr 45px;
-            gap: 12px; margin-bottom: 12px;
+            display: grid; grid-template-columns: 1.2fr 1fr 40px;
+            gap: 8px; margin-bottom: 10px;
         }
 
         input {
-            padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
+            width: 100%; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.2);
             background: rgba(0, 0, 0, 0.4); color: #fff;
-            border-radius: 12px; text-align: center;
-            width: 80%; justify-self: center;
+            border-radius: 10px; text-align: center; font-size: 0.9rem;
+            box-sizing: border-box;
         }
 
         button { cursor: pointer; border: none; font-family: 'Pirata One', cursive; transition: 0.3s; }
 
         .btn-add {
-            width: 100%; padding: 15px; background: #ff69b4;
-            color: white; font-size: 1.6rem; border-radius: 15px;
-            margin-top: 10px;
+            width: 100%; padding: 12px; background: #ff69b4;
+            color: white; font-size: 1.3rem; border-radius: 12px; margin-top: 10px;
         }
 
         .btn-pdf {
-            width: 100%; padding: 12px; 
+            width: 100%; padding: 10px; 
             background: linear-gradient(90deg, #ff69b4, #0077be);
-            color: white; font-size: 1.3rem; border-radius: 15px;
-            margin-top: 10px;
+            color: white; font-size: 1.1rem; border-radius: 12px; margin-top: 10px;
         }
 
         .btn-clear {
             width: 100%; padding: 8px; background: transparent;
             color: #ff69b4; border: 1px solid #ff69b4;
-            border-radius: 12px; margin-top: 10px; font-size: 1rem;
+            border-radius: 10px; margin-top: 10px; font-size: 0.8rem;
         }
 
-        .btn-remove { background: rgba(255, 255, 255, 0.1); color: #ff69b4; border-radius: 8px; }
+        .btn-remove { background: rgba(255, 255, 255, 0.1); color: #ff69b4; border-radius: 8px; font-family: Arial; font-weight: bold; }
 
-        .result-section { margin-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 15px; }
-        
-        #gwa-display { font-size: 4rem; color: #fff; text-shadow: 0 0 20px #00ffff; font-weight: 900; }
+        .result-section { margin-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 15px; }
+        #gwa-display { font-size: 3rem; color: #fff; text-shadow: 0 0 20px #00ffff; font-weight: 900; }
     </style>
 </head>
 <body>
 
-    <video id="bg-portrait" class="video-bg" autoplay muted loop playsinline src="oceanp.mp4"></video>
-    <video id="bg-landscape" class="video-bg" autoplay muted loop playsinline src="oceanl.mp4"></video>
+    <video id="bg-portrait" class="video-bg" autoplay muted loop playsinline>
+        <source src="oceanp.mp4" type="video/mp4">
+    </video>
+    <video id="bg-landscape" class="video-bg" autoplay muted loop playsinline>
+        <source src="oceanl.mp4" type="video/mp4">
+    </video>
 
     <div class="container">
         <div class="calc-card" id="export-area">
             <h1>✦ GWA CALCULATOR ✦</h1>
-            <span id="rank-display">RANK: NEW STUDENT</span>
             
             <div class="label-grid">
                 <span>Grade</span>
@@ -127,7 +125,7 @@
             <div id="grades-container"></div>
 
             <button class="btn-add" onclick="addRow()">+ Add Course</button>
-            <button class="btn-pdf" onclick="downloadPDF()">⬇ Download</button>
+            <button class="btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
             <button class="btn-clear" onclick="clearAll()">Clear All</button>
 
             <div class="result-section">
@@ -139,7 +137,6 @@
     <script>
         const container = document.getElementById('grades-container');
         const display = document.getElementById('gwa-display');
-        const rankText = document.getElementById('rank-display');
 
         function addRow() {
             const row = document.createElement('div');
@@ -173,46 +170,40 @@
             });
 
             if (totalUnits > 0) {
-                const finalGwa = (totalWeightedPoints / totalUnits).toFixed(2);
-                display.innerText = finalGwa;
-                updateRank(parseFloat(finalGwa));
+                display.innerText = (totalWeightedPoints / totalUnits).toFixed(2);
             } else {
                 display.innerText = "0.00";
-                rankText.innerText = "RANK: NEW STUDENT";
             }
-        }
-
-        function updateRank(val) {
-            if (val <= 1.25) rankText.innerText = "RANK: OCEAN COUNCIL";
-            else if (val <= 1.75) rankText.innerText = "RANK: ELITE DIVER";
-            else if (val <= 2.25) rankText.innerText = "RANK: DEEP SURFER";
-            else rankText.innerText = "RANK: STUDENT";
         }
 
         function clearAll() {
             container.innerHTML = '';
             display.innerText = "0.00";
-            rankText.innerText = "RANK: NEW STUDENT";
             addRow(); 
         }
 
         function downloadPDF() {
             const element = document.getElementById('export-area');
-            const options = {
-                margin: 0.5,
-                filename: 'My_GWA_Result.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, backgroundColor: '#001f3f' },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            const opt = {
+                margin: 0.2,
+                filename: 'My_GWA.pdf',
+                image: { type: 'jpeg', quality: 1 },
+                html2canvas: { scale: 3, useCORS: true, backgroundColor: '#001f3f' },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            
-            const buttons = element.querySelectorAll('button');
-            buttons.forEach(b => b.style.visibility = 'hidden');
 
-            html2pdf().set(options).from(element).save().then(() => {
-                buttons.forEach(b => b.style.visibility = 'visible');
+            const buttons = element.querySelectorAll('button');
+            buttons.forEach(b => b.style.display = 'none');
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                buttons.forEach(b => b.style.display = 'block');
             });
         }
+
+        // Fix video for iOS/Safari
+        window.addEventListener('touchstart', () => {
+            document.querySelectorAll('video').forEach(v => v.play());
+        }, {once: true});
 
         window.onload = addRow;
     </script>
