@@ -3,181 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>✦ Ocean GWA Calculator ✦</title>
+    <title>✦ GWA Calculator ✦</title>
     <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
+            margin: 0; padding: 0; height: 100%;
             font-family: 'JetBrains Mono', monospace;
-            overflow-x: hidden;
-            color: #fff;
-            background-color: #001f3f; /* Deep Ocean Fallback */
+            overflow-x: hidden; color: #fff;
+            background-color: #001f3f;
         }
 
-        /* 1. Ocean Video Background Logic */
+        /* 1. Background Logic */
         .video-bg {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            min-width: 100%;
-            min-height: 100%;
-            z-index: -100;
-            transform: translate(-50%, -50%);
-            object-fit: cover;
-            display: none;
-            filter: brightness(0.8) saturate(1.2);
+            position: fixed; top: 50%; left: 50%;
+            min-width: 100%; min-height: 100%;
+            z-index: -100; transform: translate(-50%, -50%);
+            object-fit: cover; display: none;
+            filter: brightness(0.7) saturate(1.2);
         }
         @media (orientation: portrait) { #bg-portrait { display: block; } }
         @media (orientation: landscape) { #bg-landscape { display: block; } }
 
-        /* 2. Ocean & Pink UI Styling */
         .container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-            /* Blue to Pink gradient overlay */
+            display: flex; align-items: center; justify-content: center;
+            min-height: 100vh; padding: 20px;
             background: linear-gradient(135deg, rgba(0, 119, 190, 0.2) 0%, rgba(255, 105, 180, 0.1) 100%);
         }
 
+        /* 2. UI Styling */
         .calc-card {
-            background: rgba(0, 31, 63, 0.7); /* Deep blue transparent */
-            backdrop-filter: blur(12px);
-            border: 2px solid #ff69b4; /* Pink border */
-            padding: 2.5rem;
-            border-radius: 25px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3), 0 0 10px rgba(255, 105, 180, 0.3);
-            position: relative;
+            background: rgba(0, 31, 63, 0.85);
+            backdrop-filter: blur(15px);
+            border: 2px solid #ff69b4;
+            padding: 2.5rem; border-radius: 25px;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
             text-align: center;
         }
 
         h1 { 
-            font-family: 'Pirata One', system-ui;
-            margin: 0 0 5px 0;
-            color: #ff69b4; /* Pink Title */
-            font-size: 3rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            font-family: 'Pirata One', system-ui; margin: 0;
+            color: #ff69b4; font-size: 3rem;
             text-shadow: 0 0 15px rgba(255, 105, 180, 0.6);
         }
 
         #rank-display {
-            font-family: 'Pirata One', cursive;
-            color: #00ffff; /* Cyan Rank */
-            font-size: 1.4rem;
-            letter-spacing: 1.5px;
-            margin-bottom: 25px;
-            display: block;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-        }
-
-        .row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 45px;
-            gap: 12px;
-            margin-bottom: 15px;
-            animation: slideIn 0.4s ease-out;
-        }
-
-        @keyframes slideIn {
-            0% { opacity: 0; transform: translateY(10px); }
-            100% { opacity: 1; transform: translateY(0); }
+            font-family: 'Pirata One', cursive; color: #00ffff;
+            font-size: 1.4rem; margin-bottom: 20px; display: block;
         }
 
         .label-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 45px;
-            gap: 12px;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #00ffff;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            opacity: 0.8;
+            display: grid; grid-template-columns: 1fr 1fr 45px;
+            gap: 12px; margin-bottom: 8px; color: #00ffff;
+            font-size: 0.8rem; text-transform: uppercase;
+        }
+
+        .row {
+            display: grid; grid-template-columns: 1fr 1fr 45px;
+            gap: 12px; margin-bottom: 12px;
         }
 
         input {
-            padding: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            background: rgba(0, 0, 0, 0.3);
-            color: #fff;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1rem;
-            text-align: center;
-            border-radius: 12px;
-            transition: 0.3s;
+            padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.4); color: #fff;
+            border-radius: 12px; text-align: center;
         }
 
-        input:focus {
-            outline: none;
-            border-color: #00ffff;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-            background: rgba(0, 0, 0, 0.5);
-        }
-
-        button {
-            cursor: pointer;
-            border: none;
-            font-family: 'Pirata One', cursive;
-            transition: 0.3s;
-            text-transform: uppercase;
-        }
+        button { cursor: pointer; border: none; font-family: 'Pirata One', cursive; transition: 0.3s; }
 
         .btn-add {
-            width: 100%;
-            padding: 15px;
-            background: #ff69b4;
-            color: white;
-            font-size: 1.6rem;
-            margin-top: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(255, 105, 180, 0.4);
+            width: 100%; padding: 15px; background: #ff69b4;
+            color: white; font-size: 1.6rem; border-radius: 15px;
+            margin-top: 10px;
         }
-        .btn-add:hover { 
-            background: #ff85c2; 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(255, 105, 180, 0.6);
+
+        /* PDF Button Styling */
+        .btn-pdf {
+            width: 100%; padding: 12px; 
+            background: linear-gradient(90deg, #ff69b4, #0077be);
+            color: white; font-size: 1.3rem; border-radius: 15px;
+            margin-top: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .btn-clear {
-            width: 100%;
-            padding: 10px;
-            background: transparent;
-            color: #ff69b4;
-            margin-top: 10px;
-            font-size: 1.2rem;
-            border: 2px solid #ff69b4;
-            border-radius: 15px;
-        }
-        .btn-clear:hover { background: rgba(255, 105, 180, 0.1); }
-
-        .btn-remove {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ff69b4;
-            border-radius: 10px;
-            font-size: 1.2rem;
-        }
-        .btn-remove:hover { background: #ff69b4; color: #fff; }
-
-        .result-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%; padding: 8px; background: transparent;
+            color: #ff69b4; border: 1px solid #ff69b4;
+            border-radius: 12px; margin-top: 10px; font-size: 1rem;
         }
 
-        #gwa-display {
-            font-size: 4.5rem;
-            display: block;
-            color: #fff;
-            text-shadow: 0 0 20px #00ffff, 0 0 40px rgba(0, 255, 255, 0.3);
-            font-weight: 900;
-            line-height: 1;
-        }
+        .btn-remove { background: rgba(255, 255, 255, 0.1); color: #ff69b4; border-radius: 8px; }
+
+        .result-section { margin-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 15px; }
+        
+        #gwa-display { font-size: 4rem; color: #fff; text-shadow: 0 0 20px #00ffff; font-weight: 900; }
     </style>
 </head>
 <body>
@@ -186,7 +106,7 @@
     <video id="bg-landscape" class="video-bg" autoplay muted loop playsinline src="oceanl.mp4"></video>
 
     <div class="container">
-        <div class="calc-card">
+        <div class="calc-card" id="export-area">
             <h1>✦ GWA CALCULATOR ✦</h1>
             
             <div class="label-grid">
@@ -195,10 +115,10 @@
                 <span></span>
             </div>
 
-            <div id="grades-container">
-                </div>
+            <div id="grades-container"></div>
 
             <button class="btn-add" onclick="addRow()">+ Add Subject</button>
+            <button class="btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
             <button class="btn-clear" onclick="clearAll()">Clear All</button>
 
             <div class="result-section">
@@ -254,12 +174,10 @@
         }
 
         function updateRank(val) {
-            // Updated rank titles to fit the ocean/academy theme
             if (val <= 1.25) rankText.innerText = "RANK: OCEAN COUNCIL";
             else if (val <= 1.75) rankText.innerText = "RANK: ELITE DIVER";
             else if (val <= 2.25) rankText.innerText = "RANK: DEEP SURFER";
-            else if (val <= 3.00) rankText.innerText = "RANK: STUDENT";
-            else rankText.innerText = "RANK: NEWCOMER";
+            else rankText.innerText = "RANK: STUDENT";
         }
 
         function clearAll() {
@@ -267,6 +185,27 @@
             display.innerText = "0.00";
             rankText.innerText = "RANK: NEW STUDENT";
             addRow(); 
+        }
+
+        // PDF Generation Logic
+        function downloadPDF() {
+            const element = document.getElementById('export-area');
+            const options = {
+                margin: 0.5,
+                filename: 'My_GWA_Result.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, backgroundColor: '#001f3f' },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            
+            // Temporary hide buttons so they don't show in the PDF
+            const buttons = element.querySelectorAll('button');
+            buttons.forEach(b => b.style.visibility = 'hidden');
+
+            html2pdf().set(options).from(element).save().then(() => {
+                // Show buttons again after PDF is generated
+                buttons.forEach(b => b.style.visibility = 'visible');
+            });
         }
 
         window.onload = addRow;
